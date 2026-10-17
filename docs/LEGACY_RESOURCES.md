@@ -1,21 +1,21 @@
 # Wayuunlingo — Inventario de recursos legacy y externos
 
-**Fecha:** 2026-10-17  
-**Objetivo:** Qué hay disponible, qué se puede reutilizar en Wayuunlingo, y qué no aplica.
+**Fecha:** 2026-10-17 (actualizado)  
+**Objetivo:** Qué hay disponible, qué se puede reutilizar, y cómo traerlo a `data/external/`.
 
 ---
 
-## 1. Acceso actual (cuenta GitHub `tfan80921-cell`)
+## 1. Acceso cuenta GitHub `tfan80921-cell`
 
-| Repo | Tipo | ¿Wayuunaiki? | Reutilizable para Wayuunlingo |
-|------|------|--------------|-------------------------------|
-| **wayuunlingo** | propio | Sí | Núcleo actual |
-| **cotorr** | propio | No (chat voz ES) | **STT/TTS, proxy, resiliencia** → `AUDIO_STT_TTS.md` |
-| **pdf-voice-ai** | propio | No | **Neon + pgvector** → `NEON.md` |
-| **lawai / lawai2** | propio | No (app legal) | Auth/UI genéricos; **no** corpus ni MT wayuu |
-| **binative** | propio | No | No |
+| Repo | ¿Wayuunaiki? | Reutilizable |
+|------|--------------|--------------|
+| **wayuunlingo** | Sí | Núcleo |
+| **cotorr** | No (voz ES) | STT/TTS, proxy → `AUDIO_STT_TTS.md` |
+| **pdf-voice-ai** | No | Neon + pgvector → `NEON.md` |
+| **lawai / lawai2** | No (legal) | Auth/UI genéricos; **no** corpus wayuu |
+| **binative** | No | No |
 
-**Nota sobre invites:** si los proyectos legacy (Duolingo wayuu, diccionario, chat wayuu) están en **otra cuenta u org**, hay que invitar a `tfan80921-cell` o pasar owner/nombre. En Drive, `Wayuunlingo_Drive` es documentación del proyecto actual, no un segundo corpus grande.
+Si hay repos legacy (Duolingo wayuu, diccionario propio, chat) en **otra cuenta/org**, deben ser visibles para `tfan80921-cell` (colaborador o público). Mientras tanto el valor operativo está en los recursos públicos de la sección 2.
 
 ---
 
@@ -23,51 +23,69 @@
 
 ### 2.1 [asdrubalivan/wayuunaiki-qlora-lab](https://github.com/asdrubalivan/wayuunaiki-qlora-lab)
 
-| Artefacto | Uso en Wayuunlingo |
-|-----------|-------------------|
-| AmericasNLP 2025 wayuu-spanish (~59k/6.6k) | Corpus base |
-| `wayuunaiki_dictionary.csv` | **RAG léxico** |
-| Scripts process/eval / dict-augmented | Plantillas |
-| Adaptadores Qwen2.5 LoRA (HF) | Solo comparación |
+| Artefacto | Uso |
+|-----------|-----|
+| AmericasNLP procesado (train/valid/test jsonl) | Corpus base |
+| `data/dict/wayuunaiki_dictionary.csv` (~2k entradas) | **RAG léxico** |
+| Scripts dict-augmented / evaluate | Plantillas |
 | Resultado clave | **Dict RAG ~chrF 19 > QLoRA solo ~chrF 11** |
 
-Lecciones: corpus ~89% diccionario; no sobre-entrenar; prompt train=inferencia; evaluar por dominio.
+Descarga dict (también documentada en `data/external/README.md`):
 
-HF: `asdrubalivan/wayuunaiki-dataset`, `asdrubalivan/wayuunaiki-qwen25-lora`.
+```bash
+curl -L -o data/external/dict/wayuunaiki_dictionary.csv \
+  "https://raw.githubusercontent.com/asdrubalivan/wayuunaiki-qlora-lab/main/data/dict/wayuunaiki_dictionary.csv"
+```
 
-### 2.2 [norgrai/wayuunaiki](https://github.com/norgrai/wayuunaiki)
+### 2.2 [AmericasNLP/americasnlp2025](https://github.com/AmericasNLP/americasnlp2025)
 
-Bitext Tatoeba ES–guc, BPE, PRPE/FlatCat/Morfessor, POS factors, paper AmericasNLP 2023.
+ST1 MT; guc ~59.7k train / ~6.6k dev / ~498 test. Dominios (dictionary, bible, books…). **Evaluar por dominio.**
 
-### 2.3 AmericasNLP 2025 shared task
+### 2.3 [norgrai/wayuunaiki](https://github.com/norgrai/wayuunaiki)
 
-`wayuu-spanish` con dominio (dictionary, bible, books…). Fuente externa versionada; no es el golden set EIB.
+Tatoeba ES–guc, morph (Morfessor/PRPE/FlatCat).
+
+### 2.4 [fredygallego8/wayuulingo-api](https://github.com/fredygallego8/wayuulingo-api)
+
+NestJS + **Qdrant** + Gemini: búsqueda semántica Wayuunaiki. No es nuestro corpus; sí referencia de **API + vectores** (complementa Neon/pgvector).
 
 ---
 
-## 3. Prioridad de adopción
+## 3. Rutas locales (repo wayuunlingo)
+
+| Ruta | Contenido |
+|------|-----------|
+| `data/external/README.md` | Instrucciones de clone/curl |
+| `data/external/dict/` | CSV diccionario (gitignored el CSV) |
+| `configs/baseline_dict_rag.yaml` | Config baseline sin LoRA |
+| `configs/example_lora.yaml` | Config ejemplo fine-tuning |
+
+---
+
+## 4. Prioridad
 
 | P | Qué |
 |---|-----|
-| P0 | Dict RAG + AmericasNLP con dominio |
-| P1 | Eval tipo sacrebleu/chrF; morph opcional |
-| P2 | Adapters HF solo referencia; Norgrai secundario |
+| P0 | Dict en `data/external/dict` + baseline dict-RAG |
+| P0 | AmericasNLP / processed jsonl + eval por dominio |
+| P1 | Scripts eval alineados a sacrebleu/chrF |
+| P2 | Norgrai morph; adapters HF solo referencia |
 
 ---
 
-## 4. Qué no hacer
+## 5. Qué no hacer
 
-- Test solo-diccionario como calidad de producto  
+- Test solo-diccionario como calidad de producto EIB  
 - Miles de steps sin validar chrF  
 - Pesos de terceros sin licencia/re-eval  
 - Confundir lawai/cotorr con corpus wayuu  
 
 ---
 
-## 5. Diseño actualizado
+## 6. Diseño
 
-1. Baseline: zero-shot + dict-RAG antes de reclamar mejora LoRA  
+1. Baseline zero-shot + **dict-RAG** antes de reclamar mejora LoRA  
 2. chrF++ global y por dominio  
-3. Golden set EIB propio sigue siendo el diferenciador  
+3. Golden set EIB propio = diferenciador de producto  
 
-Ver también `FINE_TUNING_PIPELINE.md`.
+Ver `FINE_TUNING_PIPELINE.md` y `data/external/README.md`.
