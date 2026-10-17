@@ -1,0 +1,38 @@
+# Baseline: zero-shot + diccionario en prompt (sin LoRA)
+# Uso previsto: medir chrF++ ANTES de reclamar mejora por fine-tuning.
+# Ver docs/FINE_TUNING_PIPELINE.md y docs/LEGACY_RESOURCES.md
+
+run_id: "baseline-dict-rag-v0"
+seed: 3407
+
+mode: "dict_rag"   # dict_rag | lora | zero_shot
+
+data:
+  # Tras clonar/descargar (ver data/external/README.md)
+  dict_csv: "data/external/dict/wayuunaiki_dictionary.csv"
+  test: "data/processed/test.jsonl"   # o split AmericasNLP guc test
+  # train/val no obligatorios en baseline de solo evaluación
+
+morphology:
+  enabled: false
+
+model:
+  base: "Qwen/Qwen2.5-1.5B-Instruct"   # o el que uses en inferencia
+  # dict_rag no carga adaptador
+
+dict_rag:
+  max_entries_per_prompt: 20
+  match: "token_overlap"   # heurística simple v0
+  direction: "es_to_guc"
+
+eval:
+  metrics: ["chrf++", "bleu"]
+  primary_metric: "chrf++"
+  by_domain: true          # si el test trae campo domain
+  gates:
+    chrf_min: 15.0         # orientativo para baseline; producto EIB usa gates más altos
+    bleu_min: 5.0
+
+logging:
+  history_file: "data/evaluation_history.json"
+  notes: "Baseline dict-RAG; comparar con LoRA en el mismo test"

@@ -1,0 +1,32 @@
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Datos externos grandes y clones
+data/external/americasnlp2025/
+data/external/norgrai-wayuunaiki/
+data/external/dict/*.csv
+data/processed/
+data/raw/
+
+# Modelos y salidas de entrenamiento
+outputs/
+adapters/
+wayuunlingo_lora_model/
+*.bin
+*.safetensors
+*.gguf
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/

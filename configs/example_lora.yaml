@@ -1,0 +1,45 @@
+# Ejemplo de run LoRA (tras baseline dict-RAG)
+run_id: "v1.3-qwen-lora"
+seed: 3407
+
+mode: "lora"
+
+data:
+  train: "data/processed/train.jsonl"
+  val: "data/processed/val.jsonl"
+  test: "data/processed/test.jsonl"
+  dict_csv: "data/external/dict/wayuunaiki_dictionary.csv"  # opcional: train con dict en prompt
+
+morphology:
+  enabled: false
+  tool: "morfessor"
+
+model:
+  base: "unsloth/Qwen2.5-Coder-7B-Instruct"
+  max_seq_length: 2048
+  load_in_4bit: true
+
+lora:
+  r: 16
+  alpha: 16
+  dropout: 0.0
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+
+train:
+  max_steps: 60
+  per_device_batch_size: 2
+  gradient_accumulation: 4
+  learning_rate: 2.0e-4
+  warmup_steps: 5
+  output_dir: "outputs/v1.3-qwen-lora"
+
+eval:
+  metrics: ["chrf++", "bleu"]
+  primary_metric: "chrf++"
+  by_domain: true
+  gates:
+    chrf_min: 45.0
+    bleu_min: 20.0
+
+logging:
+  history_file: "data/evaluation_history.json"
