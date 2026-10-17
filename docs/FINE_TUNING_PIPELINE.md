@@ -37,76 +37,55 @@ Pasar de scripts sueltos (`process_data.py`, `train_model.py`, `evaluate.py`) a 
 
 ```
 CONFIG (configs/<run_id>.yaml)
-  - model, lora, data paths, max_steps, metrics, seed
         ↓
-1. INGEST / PROCESS
-   Entrada: data/raw o data/corpus_*.json
-   Salida:  data/processed/{train,val,test}.jsonl
+1. INGEST / PROCESS → data/processed/{train,val,test}.jsonl
         ↓
-2. (OPCIONAL) SEGMENTACIÓN MORFOLÓGICA
-   Morfessor / PRPE / FlatCat
-   Gate: morphology.enabled en config
+2. (OPCIONAL) SEGMENTACIÓN MORFOLÓGICA (Morfessor / PRPE)
         ↓
-3. TRAIN
-   Base: NLLB-200 o Qwen2.5 + Unsloth | LoRA/QLoRA
-   Salida: outputs/<run_id>/ + adapters
+3. TRAIN (NLLB o Qwen2.5 + Unsloth, LoRA/QLoRA) → outputs/<run_id>/
         ↓
-4. EVALUATE
-   chrF++ (principal), BLEU, cosine opcional + plantilla EIB
-   Salida: evaluation_report.json
+4. EVALUATE (chrF++ principal, BLEU, EIB humano)
         ↓
-5. LOG & PUBLISH
-   - Append a data/evaluation_history.json
-   - (Futuro) Neon: training_runs, evaluation_samples
-   - Regenerar kpi_dashboard.html
+5. LOG → evaluation_history.json → generate_portal.py
+         (futuro: training_runs en Neon)
 ```
 
 ---
 
 ## 4. Contrato de configuración (propuesto)
 
-Archivo: `configs/<run_id>.yaml` (ejemplo conceptual)
+Archivo: `configs/<run_id>.yaml`
 
 ```yaml
 run_id: "v1.2-qwen-lora-20261017"
 seed: 3407
-
 data:
   train: "data/processed/train.jsonl"
   val: "data/processed/val.jsonl"
   test: "data/processed/test.jsonl"
-
 morphology:
   enabled: false
   tool: "morfessor"
-
 model:
   base: "unsloth/Qwen2.5-Coder-7B-Instruct"
   max_seq_length: 2048
   load_in_4bit: true
-
 lora:
   r: 16
   alpha: 16
   dropout: 0.0
-  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
-
 train:
   max_steps: 60
   per_device_batch_size: 2
   gradient_accumulation: 4
   learning_rate: 2.0e-4
-  warmup_steps: 5
   output_dir: "outputs/v1.2-qwen-lora-20261017"
-
 eval:
   metrics: ["chrf++", "bleu"]
-  chrf_word_order: 2
   primary_metric: "chrf++"
   gates:
     chrf_min: 45.0
     bleu_min: 20.0
-
 logging:
   history_file: "data/evaluation_history.json"
 ```
@@ -115,132 +94,95 @@ logging:
 
 ---
 
-## 5. Decisiones técnicas (recomendadas)
+## 5. Decisiones técnicas
 
-| Tema | Decisión | Justificación |
-|------|----------|---------------|
-| Métrica principal | **chrF++** | Mejor para morfología aglutinante |
-| Métrica secundaria | BLEU (subword) | Comparabilidad con literatura |
-| Modelo base | NLLB-200 o Qwen2.5 + Unsloth | NLLB orientado a MT; Qwen ya en script |
-| Adaptación | LoRA / QLoRA | Bajo VRAM, reproducible |
-| Segmentación | Morfessor (opcional) | Mayor ganancia en low-resource agglutinative |
-| Splits | train / val / test fijos | Evitar data leakage |
-| Seed | Fijo en config | Reproducibilidad |
+| Tema | Decisión |
+|------|----------|
+| Métrica principal | **chrF++** |
+| Secundaria | BLEU |
+| Modelo base | NLLB-200 o Qwen2.5 + Unsloth |
+| Adaptación | LoRA / QLoRA |
+| Segmentación | Morfessor opcional |
+| Splits | train/val/test fijos |
+| Seed | Fijo en config |
 
-### Gates de calidad
-
-- Si `chrF++ < gates.chrf_min` → **Requiere ajuste**
-- Si ambas métricas cumplen → **Aprobado**
-- El histórico siempre se actualiza; el gate solo cambia `result`
+Gates: chrF++ ≥ 45 y BLEU ≥ 20 → Aprobado; si no → Requiere ajuste.
 
 ---
 
-## 6. Entradas y salidas por etapa
+## 6. Entradas / salidas
 
-### Process
-- Entrada: JSON/JSONL de pares
-- Salida: train/val/test.jsonl + estadísticas
-
-### Train
-- Entrada: splits + config
-- Salida: checkpoint/adaptador en directorio con `run_id` (no sobrescribir runs anteriores)
-
-### Evaluate
-- Salida mínima `evaluation_report.json`:
-```json
-{
-  "run_id": "v1.2-qwen-lora-20261017",
-  "timestamp": "2026-10-17T12:00:00Z",
-  "model_version": "v1.2-Qwen2.5-LoRA",
-  "test_pairs": 1250,
-  "metrics": { "chrF++": 48.2, "BLEU": 22.4 },
-  "gates": { "chrf_min": 45.0, "bleu_min": 20.0, "passed": true },
-  "result": "Aprobado"
-}
-```
-
-### Log
-- Append a `data/evaluation_history.json`
-- `python scripts/generate_portal.py`
+- **Process:** JSON/JSONL → train/val/test.jsonl  
+- **Train:** splits + config → adaptador en `outputs/<run_id>/`  
+- **Evaluate:** `evaluation_report.json` con métricas, gates, result  
+- **Log:** append a `evaluation_history.json` + `python scripts/generate_portal.py`
 
 ---
 
 ## 7. Automatización (el “slot”)
 
-### Local / GPU
 ```bash
 # Ideal (futuro)
 python -m wayuunlingo.pipeline run --config configs/v1.2.yaml
 
-# Equivalente actual por etapas
-python src/process_data.py
-python src/train_model.py
-python src/evaluate.py
+# Por etapas (hoy)
+python src/process_data.py && python src/train_model.py && python src/evaluate.py
 python scripts/generate_portal.py
 ```
 
-### Cloud
-Mismo comando; solo cambia entorno (GPU, rutas, secretos). Descargar adaptador + report + histórico. No commitear pesos grandes.
+Cloud GPU: mismo comando; no commitear pesos grandes.
 
 ---
 
-## 8. Encaje con Neon + pgvector (documental)
+## 8. Encaje con Neon + Auth + Audio (documental)
 
-Tablas previstas: `training_runs`, `evaluation_samples`, `translation_pairs`, `pair_embeddings`.
+Ver:
 
-- Extensión `vector`
-- Source of truth del histórico en esta fase: `evaluation_history.json`
-- Neon = siguiente escalón (detalle en docs/NEON.md — paso 2)
-
----
-
-## 9. Encaje con Auth (documental)
-
-- Better Auth + Google OAuth (patrón cotorr)
-- Roles: Admin/ML, Revisor EIB, Usuario final
-- No bloquea el pipeline offline; define quién ve métricas en producto
+- `docs/NEON.md` — tablas `training_runs`, `translation_pairs`, pgvector  
+- `docs/AUTH.md` — Better Auth + Google, roles  
+- `docs/AUDIO_STT_TTS.md` — STT/TTS desde cotorr (no bloquea el pipeline texto)
 
 ---
 
-## 10. Riesgos y mitigaciones
+## 9. Riesgos
 
 | Riesgo | Mitigación |
 |--------|------------|
-| Corpus pequeño | Test fijo; gates; evaluación EIB |
+| Corpus pequeño | Test fijo; gates; EIB |
 | Tokenización distinta entre runs | Documentar en config |
-| Pesos en git | Nunca; solo configs + reports + histórico |
-| Scripts vs config desalineados | Entrypoint + config obligatorio (fase impl.) |
+| Pesos en git | Nunca |
+| Scripts vs config | Entrypoint unificado (fase impl.) |
 
 ---
 
-## 11. Criterios de aceptación de este diseño
+## 10. Criterios de aceptación de este diseño
 
-- [x] Documento único del flujo completo
-- [x] Formato de config y de evaluation_report definidos
-- [x] Métrica primaria y gates definidos
-- [x] Actualización de histórico y dashboard definida
-- [x] Encaje futuro Neon/Auth documentado sin forzar implementación
-
----
-
-## 12. Próximos pasos
-
-1. **Hecho:** este documento
-2. `docs/NEON.md`
-3. `docs/AUTH.md`
-4. Primer run real cuando el corpus esté estable
-5. Entrypoint `pipeline run` + tablas Neon si aplica
+- [x] Flujo completo documentado  
+- [x] Config y evaluation_report definidos  
+- [x] Métrica primaria y gates  
+- [x] Histórico y dashboard  
+- [x] Neon / Auth / Audio enlazados sin forzar implementación
 
 ---
 
-## 13. Referencias internas
+## 11. Próximos pasos
 
-- Scripts: `src/process_data.py`, `src/train_model.py`, `src/evaluate.py`
-- Histórico: `data/evaluation_history.json`
-- Dashboard: `kpi_dashboard.html`, `scripts/generate_portal.py`
-- Drive: Software Architecture, Validation Framework
-- Neon patrón: `pdf-voice-ai`
-- Auth patrón: `cotorr`
+1. **Hecho:** FINE_TUNING_PIPELINE.md  
+2. **Hecho:** NEON.md  
+3. **Hecho:** AUTH.md  
+4. **Hecho:** AUDIO_STT_TTS.md  
+5. Corpus estable → primer run real con config versionada  
+6. Entrypoint `pipeline run` + tablas Neon + API STT/MT/TTS cuando toque código
+
+---
+
+## 12. Referencias
+
+- Scripts: `src/process_data.py`, `src/train_model.py`, `src/evaluate.py`  
+- Histórico: `data/evaluation_history.json`  
+- Índice: `docs/README.md`  
+- Drive: Architecture, Validation Framework  
+- `pdf-voice-ai` (Neon), `cotorr` (Auth + Audio)
 
 ---
 
