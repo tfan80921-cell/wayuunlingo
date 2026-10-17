@@ -4,26 +4,26 @@
 
 | Documento | Contenido |
 |-----------|-----------|
-| [FINE_TUNING_PIPELINE.md](./FINE_TUNING_PIPELINE.md) | Slot de fine-tuning: flujo, config YAML, métricas (chrF++), gates, automatización |
-| [NEON.md](./NEON.md) | NeonDB + pgvector: schema previsto, embeddings, training_runs |
-| [AUTH.md](./AUTH.md) | Better Auth + Google OAuth, roles (admin / reviewer_eib / user) |
-| [AUDIO_STT_TTS.md](./AUDIO_STT_TTS.md) | STT/TTS reutilizando **cotorr**; flujo voz → MT → voz |
+| [FINE_TUNING_PIPELINE.md](./FINE_TUNING_PIPELINE.md) | Slot de fine-tuning: flujo, config YAML, métricas (chrF++), gates |
+| [LEGACY_RESOURCES.md](./LEGACY_RESOURCES.md) | Inventario: AmericasNLP, qlora-lab, Norgrai, qué reutilizar |
+| [NEON.md](./NEON.md) | NeonDB + pgvector: schema, embeddings, training_runs |
+| [AUTH.md](./AUTH.md) | Better Auth + Google OAuth, roles |
+| [AUDIO_STT_TTS.md](./AUDIO_STT_TTS.md) | STT/TTS reutilizando **cotorr** |
 
 ## Estándares transversales
 
-- **DB:** Neon + extensión `vector` (mismo criterio que pdf-voice-ai y cotorr).
-- **Auth:** Google vía Better Auth (patrón cotorr).
-- **Audio:** Captura WAV, STT dual, TTS con fallback (patrón cotorr).
-- **MT:** Pipeline texto documentado; LoRA/QLoRA; evaluación con chrF++.
+- **DB:** Neon + `vector` (pdf-voice-ai / cotorr)
+- **Auth:** Google vía Better Auth (cotorr)
+- **Audio:** WAV, STT dual, TTS fallback (cotorr)
+- **MT:** LoRA/QLoRA + **baseline dict-RAG**; chrF++ (idealmente por dominio)
 
 ## Artefactos vivos
 
-- Histórico de métricas: `data/evaluation_history.json`
-- Regenerar dashboard: `python scripts/generate_portal.py`
-- Portal / KPIs desplegados en Vercel (ver README raíz del repo)
+- `data/evaluation_history.json`
+- `python scripts/generate_portal.py`
+- Portal / KPIs en Vercel
 
-## Referencias externas al monorepo mental
+## Referencias
 
-- `pdf-voice-ai` → Neon bootstrap  
-- `cotorr` → Auth, STT/TTS, resiliencia de APIs  
-- Google Drive → arquitectura, UI/UX, validation framework, grants  
+- `pdf-voice-ai`, `cotorr`, Google Drive (arquitectura / EIB / grants)
+- Públicos: AmericasNLP 2025, [wayuunaiki-qlora-lab](https://github.com/asdrubalivan/wayuunaiki-qlora-lab), [norgrai/wayuunaiki](https://github.com/norgrai/wayuunaiki)
