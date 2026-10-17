@@ -1,0 +1,35 @@
+[
+  {
+    "timestamp": "2026-10-01T09:15:00Z",
+    "model_version": "v1.0-Baseline-Base",
+    "test_pairs": 500,
+    "chrF++": 31.0,
+    "BLEU": 11.2,
+    "cosine_similarity": 0.72,
+    "adequacy_eib": 2.9,
+    "fluency_eib": 2.5,
+    "result": "Baseline Inicial"
+  },
+  {
+    "timestamp": "2026-10-10T16:30:00Z",
+    "model_version": "v1.1-NLLB-LoRA",
+    "test_pairs": 1000,
+    "chrF++": 42.1,
+    "BLEU": 18.5,
+    "cosine_similarity": 0.84,
+    "adequacy_eib": 3.8,
+    "fluency_eib": 3.6,
+    "result": "Requiere Ajuste"
+  },
+  {
+    "timestamp": "2026-10-17T12:00:00Z",
+    "model_version": "v1.2-Qwen2.5-LoRA",
+    "test_pairs": 1250,
+    "chrF++": 48.2,
+    "BLEU": 22.4,
+    "cosine_similarity": 0.89,
+    "adequacy_eib": 4.2,
+    "fluency_eib": 4.1,
+    "result": "Aprobado"
+  }
+]
