@@ -31,5 +31,22 @@
     "adequacy_eib": 4.2,
     "fluency_eib": 4.1,
     "result": "Aprobado"
+  },
+  {
+    "timestamp": "2026-10-18T00:23:49Z",
+    "model_version": "baseline-dict-lookup-v0",
+    "test_pairs": 1000,
+    "chrF++": 0.62,
+    "BLEU": 0.0,
+    "cosine_similarity": null,
+    "adequacy_eib": null,
+    "fluency_eib": null,
+    "result": "Baseline léxico (sin LoRA)",
+    "by_domain": {
+      "dictionary": {"n": 901, "chrF++": 0.36, "BLEU": 0.0},
+      "bible": {"n": 84, "chrF++": 1.41, "BLEU": 0.0},
+      "books": {"n": 15, "chrF++": 4.76, "BLEU": 0.0}
+    },
+    "notes": "Lookup CSV sin LLM; overlap CSV↔dev ≈ 0. No equivale a dict-RAG+LLM del qlora-lab."
   }
 ]
