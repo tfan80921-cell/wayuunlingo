@@ -2,19 +2,16 @@
 
 | Documento | Contenido |
 |-----------|-----------|
-| [ECOSYSTEM.md](./ECOSYSTEM.md) | Alcance vs **Wayu Engine** + política de ramas |
-| [FINE_TUNING_PIPELINE.md](./FINE_TUNING_PIPELINE.md) | Slot fine-tuning, config, chrF++, gates |
+| **[KPI_FRAMEWORK.md](./KPI_FRAMEWORK.md)** | **Canónico ecosistema:** 4 pilares, eventos, LiteLLM, Grafana |
+| [KPI_PROMETHEUS_GRAFANA.md](./KPI_PROMETHEUS_GRAFANA.md) | Naming Prometheus / adopción corta |
+| [ECOSYSTEM.md](./ECOSYSTEM.md) | Alcance vs Wayu Engine + ramas |
+| [FINE_TUNING_PIPELINE.md](./FINE_TUNING_PIPELINE.md) | Fine-tuning, chrF++, gates |
 | [LEGACY_RESOURCES.md](./LEGACY_RESOURCES.md) | AmericasNLP, qlora-lab, Norgrai |
-| [CRONOGRAMA.md](./CRONOGRAMA.md) | 8 semanas + hitos |
-| [KANBAN.md](./KANBAN.md) | T1–T5 locales hechos; siguiente T4b |
+| [CRONOGRAMA.md](./CRONOGRAMA.md) / [KANBAN.md](./KANBAN.md) | Planificación |
 | [NEON.md](./NEON.md) / [AUTH.md](./AUTH.md) / [AUDIO_STT_TTS.md](./AUDIO_STT_TTS.md) | Estándares transversales |
 
-## Estándares
+## Remotos relacionados
 
-Neon + vector · Better Auth · Audio cotorr · MT con baseline dict + chrF++ por dominio
-
-## Remoto
-
-https://github.com/tfan80921-cell/wayuunlingo · rama `main` · usuario `tfan80921-cell`
-
-Wayu Engine: pendiente de URL/acceso para cerrar división de alcance.
+- Gateway: https://github.com/tfan80921-cell/llm-gateway  
+- Cotorr: https://github.com/tfan80921-cell/cotorr  
+- Este repo: https://github.com/tfan80921-cell/wayuunlingo  
